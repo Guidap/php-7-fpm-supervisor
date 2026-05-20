@@ -18,13 +18,22 @@ RUN apt-get update \
         make \
         pngquant \
         jpegoptim \
-        wkhtmltopdf \
+        libfontenc1 \
+        xfonts-75dpi \
+        xfonts-base \
+        xfonts-encodings \
+        xfonts-utils \
         tzdata \
     && cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime \
     && echo "$TIMEZONE" > /etc/timezone \
     && pecl install imagick \
     && docker-php-ext-enable imagick \
     && rm -rf /var/lib/apt/lists/*
+
+# wkhtmltopdf with patched-qt (apt version lacks patched-qt → no background colors in PDF)
+RUN curl -fsSL "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bullseye_$(uname -m | grep -q 'aarch64' && echo 'arm64' || echo 'amd64').deb" -o /tmp/wkhtmltox.deb \
+    && dpkg -i /tmp/wkhtmltox.deb \
+    && rm /tmp/wkhtmltox.deb
 
 RUN pecl install \
         xdebug-3.1.5 \
