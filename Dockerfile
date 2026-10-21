@@ -43,6 +43,10 @@ RUN sed -i '/bullseye-security/d' /etc/apt/sources.list \
 
 ARG TIMEZONE=Europe/Paris
 
+# PECL sources vendored (pecl.php.net/get/*.tgz, checked against xdebug.org and the
+# Imagick 3.8.1 git tag): installing from a local file needs no pecl.php.net at build time.
+COPY pecl/ /usr/src/pecl/
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libmagickwand-dev \
@@ -66,7 +70,7 @@ RUN apt-get update \
         tzdata \
     && cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime \
     && echo "$TIMEZONE" > /etc/timezone \
-    && pecl install imagick-3.8.1 \
+    && pecl install /usr/src/pecl/imagick-3.8.1.tgz \
     && docker-php-ext-enable imagick \
     && rm -rf /var/lib/apt/lists/*
 
@@ -75,8 +79,8 @@ RUN curl -fsSL "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.
     && dpkg -i /tmp/wkhtmltox.deb \
     && rm /tmp/wkhtmltox.deb
 
-RUN pecl install \
-        xdebug-3.1.5 \
+RUN pecl install /usr/src/pecl/xdebug-3.1.5.tgz \
+    && rm -rf /usr/src/pecl \
     && docker-php-ext-install \
         pdo_mysql \
         intl \
